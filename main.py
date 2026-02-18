@@ -25,6 +25,14 @@ def generate_summarize(input_text):
 
     return response.json()['response']
 
+
+# if __name__ == "__main__":
+#     user_input = input("Enter teh Text:\n")
+
+#     summury = generate_summarize(user_input)
+#     print("======Summury======")
+#     print(summury)
+ 
 @app.post("/summarize")
 def summarize_note(notes: user_input):
     summary = generate_summarize(notes.text)
@@ -33,4 +41,3 @@ def summarize_note(notes: user_input):
         "Original_Length": len(notes.text),
         "summary": summary
     }
-
