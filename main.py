@@ -1,32 +1,36 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
 import requests
+from Schema.Pydantic_model import user_input
 
-app = FastAPI(title="Ai Notes Summarizer with Fast Apis")
-
-class user_input(BaseModel):
-    text : str
-
+app = FastAPI(title="AI Notes Summarizer with FastAPI")
 
 def generate_summarize(input_text):
 
-    prompt = f"""You are an expert summarizer.
+    prompt = f"""
+    You are an expert summarizer.
     Summarize the following text in 5 clear bullet points:
+
     {input_text}
     """
 
     response = requests.post(
         "http://localhost:11434/api/generate",
         json={
-            "model":"gemma:2b",
-            "prompt":prompt,
-            "stream":False,
-            "temperature":0.4 
+            "model": "gemma:2b",
+            "prompt": prompt,
+            "stream": False,
+            "temperature": 0.4
         }
     )
 
-    return response.json()['rresponses']
+    return response.json()['response']
 
-@app.get("/summarize")
-def summarize_note(notes:user_input):
-    
+@app.post("/summarize")
+def summarize_note(notes: user_input):
+    summary = generate_summarize(notes.text)
+
+    return {
+        "Original_Length": len(notes.text),
+        "summary": summary
+    }
+
