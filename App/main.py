@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 import requests
 from Schema.Pydantic_model import user_input
+from Data_Base.database import engine,SessionLocal,Base
+from Data_Base.models import Summury
 
 app = FastAPI(title="AI Notes Summarizer with FastAPI")
 
@@ -35,9 +37,32 @@ def generate_summarize(input_text):
  
 @app.post("/summarize")
 def summarize_note(notes: user_input):
+
+    db = SessionLocal()
+
     summary = generate_summarize(notes.text)
 
+    new_summury = Summury(
+        original_text = notes.text,
+        summary_text = summary  
+    )
+
+    db.add(new_summury)
+    db.commit()
+    db.refresh(new_summury)
+    db.close()
+
     return {
-        "Original_Length": len(notes.text),
+        "id": new_summury.id,
         "summary": summary
     }
+
+@app.get("/history")
+def history_endpoint():
+
+    db = SessionLocal()
+    db = db.query(Summury).all()
+    db.close()
+
+    return db
+
