@@ -15,26 +15,38 @@ def format_datetime(dt: datetime):
 #SUMMARIZATION FUNCTION
 def generate_summarize(input_text):
 
-    prompt = f"""
-    You are an expert summarizer.
-    Summarize the following text in 2 clear bullet points:
+    chunks = split_test(input_text)
 
-    {input_text}
-    """
+    summarizes = []
 
-    response = requests.post(
-        "http://localhost:11434/api/generate",
-        json={
-            "model": "gemma:2b",
-            "prompt": prompt,
-            "stream": False,
-            "temperature": 0.4
-        }
-    )
+    for i in chunks:
 
-    return response.json()['response']
+        prompt = f"""
+        You are an expert summarizer.
+        Summarize the following text in 2 clear bullet points:
 
+        {chunks}
+        """
 
+        response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={
+                "model": "gemma:2b",
+                "prompt": prompt,
+                "stream": False,
+                "temperature": 0.4
+            }
+        )
+        summarizes.append(response.json()['response'])
+
+    final_summury = "\n".join(summarizes)
+
+    return final_summury
+
+#SPLIT FUNCTIONS
+def split_test(text,max_charecter=1500):
+    return [text[i:i+max_charecter] for i in range(0,len(text),max_charecter)]
+ 
 #DEFAULT ROUTE
 @app.get("/")
 def default():
