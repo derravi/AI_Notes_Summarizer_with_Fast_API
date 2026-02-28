@@ -6,6 +6,8 @@ from Data_Base.models import Summury
 
 app = FastAPI(title="AI Notes Summarizer with FastAPI")
 
+Base.metadata.create_all(bind=engine)
+
 def generate_summarize(input_text):
 
     prompt = f"""
@@ -28,13 +30,11 @@ def generate_summarize(input_text):
     return response.json()['response']
 
 
-# if __name__ == "__main__":
-#     user_input = input("Enter teh Text:\n")
 
-#     summury = generate_summarize(user_input)
-#     print("======Summury======")
-#     print(summury)
- 
+@app.get("/")
+def default():
+    return {"message":"Ai Summuruser"}
+
 @app.post("/summarize")
 def summarize_note(notes: user_input):
 
@@ -61,8 +61,9 @@ def summarize_note(notes: user_input):
 def history_endpoint():
 
     db = SessionLocal()
-    db = db.query(Summury).all()
+
+    data = db.query(Summury).all()
+
     db.close()
 
-    return db
-
+    return data
