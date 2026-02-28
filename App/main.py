@@ -1,18 +1,23 @@
 from fastapi import FastAPI
 import requests
 from Schema.Pydantic_model import user_input
-from Data_Base.database import engine,SessionLocal,Base
+from Data_Base.database import engine, SessionLocal, Base
 from Data_Base.models import Summury
+from datetime import datetime
 
 app = FastAPI(title="AI Notes Summarizer with FastAPI")
 
 Base.metadata.create_all(bind=engine)
 
+def format_datetime(dt: datetime):
+    return dt.strftime("%d-%m-%Y %I:%M %p")
+
+#SUMMARIZATION FUNCTION
 def generate_summarize(input_text):
 
     prompt = f"""
     You are an expert summarizer.
-    Summarize the following text in 5 clear bullet points:
+    Summarize the following text in 2 clear bullet points:
 
     {input_text}
     """
@@ -30,11 +35,13 @@ def generate_summarize(input_text):
     return response.json()['response']
 
 
-
+#DEFAULT ROUTE
 @app.get("/")
 def default():
-    return {"message":"Ai Summuruser"}
+    return {"message": "AI Summarizer Running 🚀"}
 
+
+#SUMMARIZE ENDPOINT
 @app.post("/summarize")
 def summarize_note(notes: user_input):
 
@@ -43,8 +50,8 @@ def summarize_note(notes: user_input):
     summary = generate_summarize(notes.text)
 
     new_summury = Summury(
-        original_text = notes.text,
-        summary_text = summary  
+        original_text=notes.text,
+        summary_text=summary
     )
 
     db.add(new_summury)
@@ -54,9 +61,12 @@ def summarize_note(notes: user_input):
 
     return {
         "id": new_summury.id,
-        "summary": summary
+        "summary": summary,
+        "created_at": format_datetime(new_summury.created_at)
     }
 
+
+#HISTORY ENDPOINT
 @app.get("/history")
 def history_endpoint():
 
@@ -66,4 +76,12 @@ def history_endpoint():
 
     db.close()
 
-    return data
+    return [
+        {
+            "id": item.id,
+            "original_text": item.original_text,
+            "summary_text": item.summary_text,
+            "created_at": format_datetime(item.created_at)
+        }
+        for item in data
+    ]
