@@ -25,7 +25,7 @@ def generate_summarize(input_text):
         You are an expert summarizer.
         Summarize the following text in 2 clear bullet points:
 
-        {chunks.strip()}
+        {i.strip()}
         """
 
         response = requests.post(
@@ -101,3 +101,37 @@ def history_endpoint():
         }
         for item in data
     ]
+
+# DELETE PARTICULAR SUMMARY HISTORY
+
+@app.delete("/history/{summary_id}")
+def delete_summary(summary_id:int):
+
+    db = SessionLocal()
+
+    summary  = db.query(Summury).filter(Summury.id == summary_id).first()
+
+    if not summary:
+        db.close()
+        return {"message":"Data not found."}
+    
+    db.delete(summary)
+    db.commit()
+    db.close()
+
+    return {"Message":f"Summary with id {summary_id} Deleted Successfully"}
+
+# DELETE ALL HISTORY
+@app.delete("/Delete_all_history")
+def del_all_history():
+
+    db = SessionLocal()
+
+    delete_data = db.query(Summury).delete()
+
+    db.commit()
+    db.close()
+
+    return {"message":"ll history deleted successfully!",
+            "Total_deleted":f"{delete_data}"
+            }
