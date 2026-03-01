@@ -25,7 +25,7 @@ def generate_summarize(input_text):
         You are an expert summarizer.
         Summarize the following text in 2 clear bullet points:
 
-        {chunks}
+        {chunks.strip()}
         """
 
         response = requests.post(
@@ -50,7 +50,8 @@ def split_test(text,max_charecter=1500):
 #DEFAULT ROUTE
 @app.get("/")
 def default():
-    return {"message": "AI Summarizer Running 🚀"}
+    return {"message": "AI Summarizer Running 🚀",
+            "For Summurize":"add '/docs' in your current URL then select the '/summarize' end point for Summarize a text."}
 
 
 #SUMMARIZE ENDPOINT
@@ -59,7 +60,10 @@ def summarize_note(notes: user_input):
 
     db = SessionLocal()
 
-    summary = generate_summarize(notes.text)
+    #Remove extra space
+    cleaned_text = " ".join(notes.text.split())
+
+    summary = generate_summarize(cleaned_text)
 
     new_summury = Summury(
         original_text=notes.text,
